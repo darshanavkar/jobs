@@ -12,13 +12,13 @@ import {
   getResume,
   applicants
 } from "../controllers/jobsController.js";
-import { requireSignIn, isAdmin } from '../middle/authMiddleware.js';
+import { requireSignIn, isAdmin, isRecruiter } from '../middle/authMiddleware.js';
 
 const router = express.Router();
 
 //routes
 // CREATE JOB || POST 
-router.post("/create-job", requireSignIn, createJobController);
+router.post("/create-job", requireSignIn, createJobController,);
 
 //GET JOBS || GET
 router.get("/get-job/:_id", getAllJobsController);

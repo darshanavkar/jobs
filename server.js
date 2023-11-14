@@ -7,6 +7,8 @@ import applyRoutes from './routes/application.js';
 import cors from "cors";
 import jobsRoutes from "./routes/jobsRoute.js";
 import webhookRoutes from './routes/subs1.js';
+import projectRoutes from './routes/projectRoutes.js'
+
 //import path from 'path';
 //import {fileURLToPath} from 'url';
 //es module fix
@@ -34,7 +36,9 @@ app.use(express.json());
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/subs", subsRoutes);
 app.use("/api/v1/job", jobsRoutes);
+app.use("/api/v1/project", projectRoutes);
 app.use("/api/v1/application",applyRoutes);
+
 //app.use(express.static(path.join(__dirname,'./build')))
 /*app.use('*',function(req,res) {
   res.sendFile(path.join(__dirname,'./build/index.html'));

@@ -1,10 +1,13 @@
 import { compare } from "bcrypt";
 import { comparePassword, hashPassword } from "../helpers/authHelper.js";
 import userModel from "../models/userModel.js";
+import VerificationRequest from '../models/Pending.js';
 import nodemailer from 'nodemailer';
 const JWT_Secret = '$JF0E92$';
 import JWT from 'jsonwebtoken';
 import { stripe } from "../utils/stripe.js";
+import passport from 'passport';
+import userModel1 from "../models/userModel1.js";
 
 //import orderModel from "../models/orderModel.js";
 
@@ -221,65 +224,113 @@ const sendRegistrationSuccessEmail = (recipientEmail, recipientName) => {
   });
 };
 
+export const loginController = async (req, res) => {
+  try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+          return res.status(404).send({
+              success: false,
+              message: 'Invalid email or password',
+          });
+      }
 
-export const loginController = async(req,res) => {
+      // Check user
+      const user = await userModel.findOne({ email });
+      if (!user) {
+          return res.status(404).send({
+              success: false,
+              message: 'Email is not registered',
+          });
+      }
 
-    
-    try{
-        const {email,password} = req.body
-        if(!email || !password) {
-            return res.status(404).send({
-                success:false,
-                message:'Invalid email or password'
-            })
-        }
-        //check user
-        const user = await userModel.findOne({email})
-        if(!user){
-            return res.status(404).send({
-                success:false,
-                message:'Email is not registerd'
-            })
-        }
-        const match = await comparePassword(password,user.password)
-        if(!match){
-            return res.status(200).send({
-                success:false,
-                message:'Invlid Password'
-            })
-        }
-        const JWT_Secret = '$JF0E92$';
-        //token 
-        
-        const token = await JWT.sign({_id:user._id},JWT_Secret,{expiresIn:'7d'});
-       
-        res.status(200).send({
-            success:true,
-            message:'login successfully',
-            user:{
-              
-               
-                name:user.name,
-                email:user.email,
-                phone:user.phone,
-                address:user.address,
-                role:user.role,
-                _id: user._id,
-                customer:user.customer,
-                mode:user.mode
-              
-            },
-            token
-        })
-    } catch(error) {
+      const match = await comparePassword(password, user.password);
+      if (!match) {
+          return res.status(200).send({
+              success: false,
+              message: 'Invalid Password',
+          });
+      }
 
-        console.log(error);
-        res.status(500).send({
-            success:false,
-            message:'Error in login',
-            error
-        })
-    }
+      const JWT_Secret = '$JF0E92$';
+
+      // Initialize tokens array if it doesn't exist
+      if (!user.tokens) {
+          user.tokens = [];
+      }
+
+      // Generate a unique token for this session
+      const token = await JWT.sign({ _id: user._id }, JWT_Secret, { expiresIn: '7d' });
+
+      // Store the token in the user's document
+      user.tokens.push(token);
+      await user.save();
+
+      res.status(200).send({
+          success: true,
+          message: 'Login successfully',
+          user: {
+              name: user.name,
+              email: user.email,
+              phone: user.phone,
+              address: user.address,
+              role: user.role,
+              _id: user._id,
+              customer: user.customer,
+              mode: user.mode,
+          },
+          token,
+      });
+  } catch (error) {
+      console.log(error);
+      res.status(500).send({
+          success: false,
+          message: 'Error in login',
+          error,
+      });
+  }
+};
+
+
+//google auth
+export const googleLogin = async (req, res) => {
+  try {
+      const userData = req.body.user;
+      let user = await userModel1.findOne({ email: userData.email });
+
+      if (!user) {
+          user = new userModel1(userData);
+          await user.save();
+      }
+
+      const JWT_Secret = '$JF0E92$';
+      const token = await JWT.sign({ _id: user._id }, JWT_Secret, { expiresIn: '7d' });
+
+      // Initialize tokens array if it doesn't exist
+      if (!user.tokens) {
+          user.tokens = [];
+      }
+
+      // Store the token in the user's document
+      user.tokens.push(token);
+      await user.save();
+
+      res.status(200).send({
+          success: true,
+          message: 'Login successfully',
+          user: {
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              _id: user._id,
+              customer: user.customer,
+              mode: user.mode,
+          },
+          token,
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: 'An error occurred' });
+  }
 };
 //test controller
 export const testController = (req,res) => {
@@ -415,3 +466,92 @@ export const getAllOrdersController = async (req, res) => {
       });
     }
   };
+
+
+
+  /////recruiter verified
+
+// Route to update a user's role
+export const verification = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Check if the user is an admin
+    if (user.recruiter === 1) {
+      return res.status(400).json({ msg: 'User is already an admin' });
+    }
+
+    // Update the user's role to 1 (admin)
+    user.recruiter = 1;
+    await user.save();
+
+    res.json({ msg: 'User role updated to admin' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+/// delete verification request
+export const deleteRequestController = async (req, res, next) => {
+  try {
+    const user = await VerificationRequest.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'Request not found.' });
+    }
+
+    await user.deleteOne();
+
+    res.status(200).json({ message: 'Success, request deleted!' });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
+
+/// recruiter verification request
+
+export const verificationRequest = async (req, res) => {
+  try {
+    const  userId  = req.params.id;
+    //console.log(userId);
+    const existingRequest = await VerificationRequest.findOne({ userId });
+    const user = await userModel.findOne({ _id: userId });
+
+  
+    if (existingRequest) {
+      return res.status(400).json({ msg: 'Request already exists' });
+    }
+
+    const newRequest = new VerificationRequest({
+      userId,
+      name: user.name,
+      email: user.email,
+    });
+    await newRequest.save();
+
+    res.json({ msg: 'Verification request submitted' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+// Route to get all verification requests (for admins)
+export const verificationDetails = async (req, res) => {
+  try {
+    const requests = await VerificationRequest.find();
+
+    res.json(requests);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+
+

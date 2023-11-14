@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
 
 export const createJobController = async (req, res) => {
   try {
-    const { company, position, workLocation,  workType,description,  benefits, skillsRequired , careerLink,  email} = req.body;
+    const { company, position, workLocation,level,exp, salary,currency, workType,description,   careerLink,  email} = req.body;
     const createdBy = req.user._id; // This will be the authenticated user's ID
      
     // Create the job with the createdBy field
@@ -23,9 +23,11 @@ export const createJobController = async (req, res) => {
       position,
       workLocation,
       workType,
+      level,
+      exp,
       description,
-      benefits,
-      skillsRequired ,
+     salary,
+     currency,
       careerLink,
       email,
       createdBy,
@@ -74,8 +76,8 @@ export const createJobController = async (req, res) => {
   }
 };
 
-  
-  
+ 
+
   
   
 // ======= GET JOBS ===========
@@ -104,7 +106,7 @@ export const getAllJobsController = async (req, res) => {
 // ======= UPDATE JOBS ===========
 export const updateJobController = async (req, res, next) => {
   const  _id  = req.params._id;
-  const { company, position, workLocation,  workType,skillsRequired,benefits,careerLink } = req.body;
+  const { company, position, workLocation,level,exp,workType,email,skillsRequired,benefits,careerLink } = req.body;
 
   try {
     // Find the job by its ID
@@ -120,7 +122,8 @@ export const updateJobController = async (req, res, next) => {
     jobs.company = company;
     jobs.position = position;
     jobs.workLocation = workLocation;
-    
+    jobs.level = level;
+    jobs.exp=exp;
     jobs.workType = workType;
     jobs.benefits = benefits;          // ,
     jobs.skillsRequired = skillsRequired;
@@ -426,3 +429,5 @@ const listingId = 'jobDetails';
     });
   }
 };
+
+

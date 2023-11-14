@@ -41,13 +41,17 @@ role:{
     type:Number,
     default:0
 },
+recruiter: {
+    type: Number,
+    default: 0, // Default role is 0 (non-admin)
+  },
 verified: {
     type: Boolean,
     default: false,
   },
   customer:{
     type:String
-  }
+  },
   
 
 

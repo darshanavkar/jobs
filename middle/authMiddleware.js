@@ -8,7 +8,7 @@ export const requireSignIn = async (req,res,next) => {
     try{
         const decode = JWT.verify(req.headers.authorization,JWT_Secret);
         req.user = decode
-        console.log(req.user._id);
+        
         next();
     } catch(error) {
         console.log(error)
@@ -39,3 +39,34 @@ export const isAdmin = async(req,res,next) => {
 }
 
 // middleware/authMiddleware.js
+
+
+//middleware/recruiter
+// authMiddleware.js
+
+export const isRecruiter = async(req,res,next) => {
+    try{
+        const user = await userModel.findById(req.user._id)
+        console.log(user.recruiter);
+        if(user.recruiter
+            !== 1){
+            return res.status(401).send({
+                success:false,
+                message:'unAuthorized Access'
+            })
+        }
+        else {
+            next()
+        }
+    } catch(error){
+        console.log(error)
+        res.status(401).send({
+            success:false,
+            error,
+            message:"error is recruiter"
+        })
+    }
+}
+
+ 
+  
