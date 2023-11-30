@@ -41,8 +41,10 @@ router.get("/applications/:listingId",getApplicationsForJob);
 //resume download
 router.get("/resume/:listingId",getResume);
 
-//Jobs search
-router.get("/search/:keyword", searchJobController);
+
+// Jobs search route
+router.get("/search", searchJobController);
+
 //applicants
 router.get('/applicants/:id',applicants);
 export default router;

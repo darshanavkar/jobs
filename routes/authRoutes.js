@@ -48,4 +48,6 @@ router.post('/verification-request/:id',verificationRequest);
 router.get('/verification-data',verificationDetails);
 //recruiter delete verification request
 router.delete('/verification-del/:id', deleteRequestController);
+
+
 export default router;

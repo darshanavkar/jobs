@@ -13,7 +13,7 @@ const jobSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: [true, "Job description is required"],
+     
     },
    
     workType: {

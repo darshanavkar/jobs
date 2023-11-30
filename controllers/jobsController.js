@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
 
 export const createJobController = async (req, res) => {
   try {
-    const { company, position, workLocation,level,exp, salary,currency, workType,description,   careerLink,  email} = req.body;
+    const { company, position, workLocation,level,exp, salary,currency, workType,description,careerLink, email} = req.body;
     const createdBy = req.user._id; // This will be the authenticated user's ID
      
     // Create the job with the createdBy field
@@ -106,7 +106,7 @@ export const getAllJobsController = async (req, res) => {
 // ======= UPDATE JOBS ===========
 export const updateJobController = async (req, res, next) => {
   const  _id  = req.params._id;
-  const { company, position, workLocation,level,exp,workType,email,skillsRequired,benefits,careerLink } = req.body;
+  const { company, position, workLocation,level,exp,workType,email,skillsRequired,benefits,careerLink,salary,currency } = req.body;
 
   try {
     // Find the job by its ID
@@ -129,6 +129,8 @@ export const updateJobController = async (req, res, next) => {
     jobs.skillsRequired = skillsRequired;
     jobs.careerLink = careerLink;
     jobs.email = email;
+    jobs.salary = salary;
+    jobs.currency = currency;
 
     const updatedJob = await jobs.save();
     const mailOptions = {
@@ -347,19 +349,29 @@ export const getResume  = async (req, res) => {
 
 export const searchJobController = async (req, res) => {
   try {
-    const { keyword } = req.params;
-    const results = await Job
-      .find({
-        $or: [
-          {  position: { $regex: keyword[0], $options: "i" } },
+    const { keyword, workType, level, exp, company, salaryRange, skills } = req.query;
 
-          { company: { $regex: keyword[2], $options: "i" } },
-          { workLocation: { $regex: keyword[1], $options: "i" } },
-          /*{ workType: { $regex: keyword[1], $options: "i" } },
-          { description: { $regex: keyword[0], $options: "i" } },*/
-        ],
-      })
-    
+    const query = {
+      $or: [
+        { position: { $regex: keyword, $options: "i" } },
+        { company: { $regex: keyword, $options: "i" } },
+        { workLocation: { $regex: keyword, $options: "i" } },
+      ],
+    };
+
+    if (workType) {
+      query.workType = workType;
+    }
+
+    if (level) {
+      query.level = level;
+    }
+
+    if (exp) {
+      query.exp = exp;
+    }
+
+    const results = await Job.find(query);
     res.json(results);
   } catch (error) {
     console.log(error);
@@ -370,6 +382,7 @@ export const searchJobController = async (req, res) => {
     });
   }
 };
+
 
 // similar products
 export const realtedJobController = async (req, res) => {

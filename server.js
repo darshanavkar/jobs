@@ -8,8 +8,8 @@ import cors from "cors";
 import jobsRoutes from "./routes/jobsRoute.js";
 import webhookRoutes from './routes/subs1.js';
 import projectRoutes from './routes/projectRoutes.js'
-
-//import path from 'path';
+import profile from './routes/profile.js';
+//import path from 'path';;
 //import {fileURLToPath} from 'url';
 //es module fix
 //const _filename =fileURLToPath(import.meta.url);
@@ -36,6 +36,7 @@ app.use(express.json());
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/subs", subsRoutes);
 app.use("/api/v1/job", jobsRoutes);
+app.use("/api/v1/profile", profile);
 app.use("/api/v1/project", projectRoutes);
 app.use("/api/v1/application",applyRoutes);
 
